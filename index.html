@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Babylon.js WebXR AR on iPhone</title>
+  <title>Babylon.js WebXR AR on iPhone (Fixed)</title>
   <style>
     html, body, #renderCanvas {
       width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
@@ -30,10 +30,8 @@
         const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
         camera.attachControl(canvas, true);
 
-        // 光源
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
-        // 球体を作成
         const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 0.2 }, scene);
         sphere.position.z = 1;
 
@@ -42,18 +40,21 @@
 
       const scene = createScene();
 
-      // WebXR ARモード開始の処理
       try {
-        const xr = await scene.createDefaultXRExperienceAsync({
-          uiOptions: {
-            sessionMode: 'immersive-ar',
-          },
-          optionalFeatures: true,
-        });
-
-        // ARが使えない場合のメッセージ表示
-        if (!xr.baseExperience.sessionManager.isSessionSupported('immersive-ar')) {
-          alert("この端末はWebXR ARに対応していません。");
+        if (navigator.xr) {
+          const supported = await navigator.xr.isSessionSupported('immersive-ar');
+          if (!supported) {
+            alert("この端末はWebXR ARに対応していません。");
+          } else {
+            await scene.createDefaultXRExperienceAsync({
+              uiOptions: {
+                sessionMode: 'immersive-ar',
+              },
+              optionalFeatures: true,
+            });
+          }
+        } else {
+          alert("WebXR APIがブラウザで利用できません。");
         }
       } catch (e) {
         alert("WebXRの初期化に失敗しました: " + e.message);
